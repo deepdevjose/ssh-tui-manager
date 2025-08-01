@@ -1,10 +1,7 @@
 {
-    "VM1": {
-        "ip": "your.vm.ip",
-        "users": [
-            "root",
-            "your_user1"
-        ],
-        "color": "RED"
+    "test": {
+        "ip": "127.0.0.1",
+        "users": [],
+        "color": "CYAN"
     }
 }
