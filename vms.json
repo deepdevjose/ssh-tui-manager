@@ -1,0 +1,12 @@
+{
+    "vms": {
+        "VM1": {
+            "ip": "your.vm.ip",
+            "users": [
+                "root",
+                "your_user1"
+            ],
+            "color": "RED"
+        }
+    }
+}
