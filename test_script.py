@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.insert(0, r"c:\Users\Josee\Downloads\github_repositories\ssh-tui-manager")
+from ssh_menu import load_config, save_config, COLORS, clear_screen, admin_menu
 
 # Test imports
 try:
