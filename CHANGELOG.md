@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [2.1.1] - 2025-08-01
+
+### Enhanced
+- **Robust Error Handling**: Comprehensive error handling for configuration files
+- **Automatic Backup**: Corrupted JSON files are automatically backed up before fallback
+- **Data Validation**: Full validation of configuration data structure and types
+- **UTF-8 Support**: International character support with proper encoding
+- **Permission Handling**: Graceful handling of file permission errors
+- **Save Operations**: Robust save_config() with status feedback and error recovery
+
+### Added
+- Configuration loading with multiple fallback strategies
+- Automatic migration of legacy field names (usuarios → users)
+- Required field validation with sensible defaults (IP, users, color)
+- Clear error messages with professional colored output
+- Module import safety with `__name__ == "__main__"` guard
+- Data integrity preservation during save failures
+
+### Improved
+- User feedback for all save operation failures
+- Professional error messaging and user guidance
+- Enterprise-ready stability for production environments
+- Maintains functionality even under adverse conditions
+- Comprehensive testing against multiple failure scenarios
+
+---
+
+## [2.1.0] - 2025-08-01
+
+### Added
+- **Arrow Key Navigation**: Full keyboard navigation with ↑↓ arrows for menu selection
+- **Professional Terminal Theme**: 256-color ANSI styling with blue professional color scheme
+- **Cancellation Support**: Comprehensive cancellation with keywords 'cancel', 'exit', 'quit'
+- **Quick Connect Feature**: Direct connection for VMs with single users
+- **Input Validation**: Robust validation for VM names, IP addresses, and usernames
+- **Visual Controls Guide**: Clear keyboard controls displayed in all menus
+
+### Enhanced
+- **User Experience**: Intuitive navigation with highlighted selections and visual feedback
+- **Terminal Interface**: Professional appearance with borders, highlights, and consistent styling
+- **Error Handling**: Improved validation loops with clear error messages
+- **Cancellation Flow**: Ability to cancel operations at any point during VM/user creation
+- **Quick Actions**: Streamlined workflow for common operations
+
+### Added Features
+- Arrow key menu navigation with visual selection highlighting
+- Direct number key selection (0-9) for quick menu access
+- Professional blue color theme with consistent styling throughout
+- Comprehensive input validation for all user inputs
+- Visual feedback for successful operations and errors
+- Cancellation options at every input step in multi-step processes
+
+### Technical
+- Enhanced `arrow_menu()` function with full keyboard support
+- Professional ANSI color codes (RED: 196, GREEN: 46, CYAN: 51, BLUE: 39)
+- Windows-specific keyboard input handling with msvcrt
+- Improved user interface consistency across all menus
+- Enhanced error messaging with colored output
+
+---
+
 ## [2.0.1] - 2025-08-01
 
 ### Added
