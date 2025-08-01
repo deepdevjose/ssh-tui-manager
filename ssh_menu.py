@@ -35,10 +35,15 @@ def load_config():
             return vms_data
     else:
         return {
-            "VM1": {
-                "ip": "your.vm.ip",  # Replace with actual IP
-                "users": ["root", "your_user1"],
+            "Debian VM": {
+                "ip": "192.168.100.55",
+                "users": ["root", "deepdevjose"],
                 "color": "RED"
+            },
+            "Rocky VM": {
+                "ip": "192.168.100.54",
+                "users": ["root", "deepdevjose"],
+                "color": "GREEN"
             }
         }
 
@@ -94,7 +99,7 @@ def ssh_menu():
         connect_user_menu(vm_name)
 
 def connect_user_menu(vm_name):
-    """User submenu for connection"""
+    """User submenu for connection and user management"""
     vm_info = vms[vm_name]
     ip = vm_info["ip"]
     color = COLORS.get(vm_info.get("color", "CYAN"), RESET)
@@ -104,22 +109,43 @@ def connect_user_menu(vm_name):
         print(f"{color}=== Users for {vm_name} ({ip}) ==={RESET}\n")
         print("0. Back")
         for idx, user in enumerate(vm_info["users"], start=1):
-            print(f"{idx}. {user}")
+            print(f"{idx}. Connect as {user}")
+        print(f"{len(vm_info['users'])+1}. Add new user")
+        print(f"{len(vm_info['users'])+2}. Remove user\n")
 
-        user_option = input(f"\n{CYAN}Select user:{RESET} ")
+        option = input(f"{CYAN}Select option:{RESET} ")
 
-        if not user_option.isdigit():
+        if not option.isdigit():
             continue
 
-        user_option = int(user_option)
-        if user_option == 0:
+        option = int(option)
+        if option == 0:
             return
-        elif 1 <= user_option <= len(vm_info["users"]):
-            username = vm_info["users"][user_option-1]
+        elif 1 <= option <= len(vm_info["users"]):
+            username = vm_info["users"][option-1]
             clear_screen()
             print(f"{color}Opening SSH to {vm_name} ({ip}) as {username}...{RESET}\n")
             os.system(f'start cmd /k ssh {username}@{ip}')
-        # Returns automatically to menu after closing connection
+        elif option == len(vm_info["users"])+1:
+            new_user = input("Enter new username: ")
+            if new_user and new_user not in vm_info["users"]:
+                vm_info["users"].append(new_user)
+                save_config(vms)
+                print(f"{GREEN}User {new_user} added!{RESET}")
+        elif option == len(vm_info["users"])+2:
+            if not vm_info["users"]:
+                print(f"{RED}No users to remove.{RESET}")
+            else:
+                for idx, user in enumerate(vm_info["users"], start=1):
+                    print(f"{idx}. {user}")
+                delete_user = input("Select user to remove: ")
+                if delete_user.isdigit() and 1 <= int(delete_user) <= len(vm_info["users"]):
+                    confirm = input(f"Are you sure to remove {vm_info['users'][int(delete_user)-1]}? (y/n): ").lower()
+                    if confirm == "y":
+                        removed = vm_info["users"].pop(int(delete_user)-1)
+                        save_config(vms)
+                        print(f"{GREEN}User {removed} removed!{RESET}")
+        input(f"{CYAN}\nPress Enter to return to the menu...{RESET}")
 
 def admin_menu():
     """VM administration menu"""
@@ -128,7 +154,7 @@ def admin_menu():
         print(f"{YELLOW}=== ADMIN MENU ==={RESET}\n")
         print("0. Back")
         for idx, vm_name in enumerate(vms.keys(), start=1):
-            print(f"{idx}. {vm_name}")
+            print(f"{idx}. Edit {vm_name}")
         print(f"{len(vms)+1}. Add new VM")
         print(f"{len(vms)+2}. Delete VM\n")
 
@@ -149,38 +175,17 @@ def admin_menu():
             edit_vm(vm_name)
 
 def edit_vm(vm_name):
-    """Edit IP and users of a VM"""
+    """Edit VM IP address"""
     vm_info = vms[vm_name]
-    while True:
-        clear_screen()
-        print(f"{YELLOW}Editing {vm_name}{RESET}")
-        print(f"IP: {vm_info['ip']}")
-        print(f"Users: {', '.join(vm_info['users'])}\n")
-        print("0. Back")
-        print("1. Change IP")
-        print("2. Add user")
-        print("3. Remove user\n")
-
-        option = input(f"{CYAN}Select option:{RESET} ")
-
-        if option == "0":
-            return
-        elif option == "1":
-            new_ip = input("New IP: ")
-            vm_info["ip"] = new_ip
-        elif option == "2":
-            new_user = input("New user: ")
-            if new_user not in vm_info["users"]:
-                vm_info["users"].append(new_user)
-        elif option == "3":
-            for idx, user in enumerate(vm_info["users"], start=1):
-                print(f"{idx}. {user}")
-            delete_user = input("Select user to remove: ")
-            if delete_user.isdigit() and 1 <= int(delete_user) <= len(vm_info["users"]):
-                confirm = input(f"Are you sure? (y/n): ").lower()
-                if confirm == "y":
-                    vm_info["users"].pop(int(delete_user)-1)
+    clear_screen()
+    print(f"{YELLOW}Editing {vm_name}{RESET}")
+    print(f"Current IP: {vm_info['ip']}")
+    new_ip = input("Enter new IP (leave blank to keep current): ")
+    if new_ip:
+        vm_info["ip"] = new_ip
         save_config(vms)
+        print(f"{GREEN}IP updated!{RESET}")
+    input("Press Enter to return...")
 
 def add_vm():
     clear_screen()
@@ -189,6 +194,8 @@ def add_vm():
     color = input("Color (RED/GREEN/CYAN/YELLOW): ").upper()
     vms[name] = {"ip": ip, "users": [], "color": color if color in COLORS else "CYAN"}
     save_config(vms)
+    print(f"{GREEN}VM {name} added!{RESET}")
+    input("Press Enter to return...")
 
 def delete_vm():
     clear_screen()
@@ -207,6 +214,8 @@ def delete_vm():
     if confirm == "y":
         vms.pop(vm_name)
         save_config(vms)
+        print(f"{GREEN}VM {vm_name} deleted!{RESET}")
+    input("Press Enter to return...")
 
 # Start the menu
 ssh_menu()
