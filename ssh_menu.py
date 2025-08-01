@@ -26,7 +26,7 @@ while True:
     print(f"{CYAN}║        SSH MENU - WINDOWS      ║{RESET}")
     print(f"{CYAN}╚════════════════════════════════╝{RESET}\n")
 
-    # Mostrar las VMs con colores
+    # Show available VMs
     for idx, (vm_name, vm_info) in enumerate(vms.items(), start=1):
         print(f" {idx}. {vm_info['color']}{vm_name}{RESET} ({vm_info['ip']})")
     print(f" {len(vms)+1}. {YELLOW}Exit{RESET}\n")
