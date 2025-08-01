@@ -22,44 +22,100 @@ CONFIG_FILE = "vms.json"
 
 # Load configuration from JSON or create initial setup
 def load_config():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, "r") as f:
-            data = json.load(f)
-            # Handle both old format (direct dict) and new format (with "vms" key)
-            if "vms" in data:
-                vms_data = data["vms"]
-            else:
-                vms_data = data
-            
-            # Ensure all VMs have required fields
-            for vm_name, vm_info in vms_data.items():
-                if "color" not in vm_info:
-                    vm_info["color"] = "CYAN"
-                if "users" not in vm_info:
-                    vm_info["users"] = vm_info.get("usuarios", [])
-                # Remove old "usuarios" field if present
-                if "usuarios" in vm_info:
-                    vm_info.pop("usuarios")
-            
-            return vms_data
-    else:
-        return {
-            "Production Server": {
-                "ip": "192.168.1.100",  # Default production-like IP
-                "users": ["root", "admin", "deploy"],
-                "color": "BLUE"
-            },
-            "Development Server": {
-                "ip": "192.168.1.101",  # Default dev-like IP
-                "users": ["dev", "root"],
-                "color": "GREEN"
-            }
+    try:
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                # Handle both old format (direct dict) and new format (with "vms" key)
+                if "vms" in data:
+                    vms_data = data["vms"]
+                else:
+                    vms_data = data
+                
+                # Validate that vms_data is a dictionary
+                if not isinstance(vms_data, dict):
+                    print(f"{YELLOW}⚠ Warning: Invalid configuration format in {CONFIG_FILE}. Using defaults.{RESET}")
+                    return get_default_config()
+                
+                # Ensure all VMs have required fields
+                for vm_name, vm_info in vms_data.items():
+                    if not isinstance(vm_info, dict):
+                        print(f"{YELLOW}⚠ Warning: Invalid VM configuration for '{vm_name}'. Skipping.{RESET}")
+                        continue
+                    if "color" not in vm_info:
+                        vm_info["color"] = "CYAN"
+                    if "users" not in vm_info:
+                        vm_info["users"] = vm_info.get("usuarios", [])
+                    if "ip" not in vm_info:
+                        vm_info["ip"] = "127.0.0.1"  # Default fallback IP
+                    # Ensure users is a list
+                    if not isinstance(vm_info["users"], list):
+                        vm_info["users"] = []
+                    # Remove old "usuarios" field if present
+                    if "usuarios" in vm_info:
+                        vm_info.pop("usuarios")
+                
+                return vms_data
+        else:
+            # File doesn't exist, create with default configuration
+            print(f"{CYAN}ℹ Configuration file '{CONFIG_FILE}' not found. Creating with default settings.{RESET}")
+            return get_default_config()
+    except json.JSONDecodeError as e:
+        print(f"{RED}✗ Error: Invalid JSON in {CONFIG_FILE}. Line {e.lineno}: {e.msg}{RESET}")
+        print(f"{YELLOW}ℹ Using default configuration. Your original file will be backed up.{RESET}")
+        
+        # Backup corrupted file
+        backup_file = f"{CONFIG_FILE}.backup"
+        try:
+            import shutil
+            shutil.copy2(CONFIG_FILE, backup_file)
+            print(f"{CYAN}ℹ Corrupted file backed up as '{backup_file}'{RESET}")
+        except Exception:
+            pass
+        
+        return get_default_config()
+    except PermissionError:
+        print(f"{RED}✗ Error: Permission denied accessing {CONFIG_FILE}{RESET}")
+        print(f"{YELLOW}ℹ Using default configuration (changes won't be saved){RESET}")
+        return get_default_config()
+    except Exception as e:
+        print(f"{RED}✗ Error loading configuration: {str(e)}{RESET}")
+        print(f"{YELLOW}ℹ Using default configuration{RESET}")
+        return get_default_config()
+
+def get_default_config():
+    """Return default VM configuration"""
+    return {
+        "Production Server": {
+            "ip": "192.168.1.100",  # Default production-like IP
+            "users": ["root", "admin", "deploy"],
+            "color": "BLUE"
+        },
+        "Development Server": {
+            "ip": "192.168.1.101",  # Default dev-like IP
+            "users": ["dev", "root"],
+            "color": "GREEN"
         }
+    }
 
 # Save configuration
 def save_config(vms):
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(vms, f, indent=4)
+    """Save VMs configuration to JSON file with error handling"""
+    try:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(vms, f, indent=4, ensure_ascii=False)
+        return True
+    except PermissionError:
+        print(f"{RED}✗ Error: Permission denied writing to {CONFIG_FILE}{RESET}")
+        print(f"{YELLOW}ℹ Changes cannot be saved. Check file permissions.{RESET}")
+        return False
+    except OSError as e:
+        print(f"{RED}✗ Error: Cannot write to {CONFIG_FILE}. {str(e)}{RESET}")
+        print(f"{YELLOW}ℹ Changes cannot be saved.{RESET}")
+        return False
+    except Exception as e:
+        print(f"{RED}✗ Unexpected error saving configuration: {str(e)}{RESET}")
+        return False
 
 # Color name mapping
 COLORS = {
@@ -275,8 +331,10 @@ def connect_user_menu(vm_name):
                     continue
                 else:
                     vm_info["users"].append(new_user)
-                    save_config(vms)
-                    print(f"\n{GREEN}✓ User {YELLOW}{new_user}{GREEN} added successfully!{RESET}")
+                    if save_config(vms):
+                        print(f"\n{GREEN}✓ User {YELLOW}{new_user}{GREEN} added successfully!{RESET}")
+                    else:
+                        print(f"\n{YELLOW}⚠ User {new_user} added but configuration could not be saved.{RESET}")
                     break
             
             input(f"\n{GRAY}Press Enter to return...{RESET}")
@@ -316,8 +374,10 @@ def connect_user_menu(vm_name):
                     
                     if confirm.lower() == "yes":
                         vm_info["users"].remove(user_to_remove)
-                        save_config(vms)
-                        print(f"\n{GREEN}✓ User {user_to_remove} removed successfully!{RESET}")
+                        if save_config(vms):
+                            print(f"\n{GREEN}✓ User {user_to_remove} removed successfully!{RESET}")
+                        else:
+                            print(f"\n{YELLOW}⚠ User {user_to_remove} removed but configuration could not be saved.{RESET}")
                     else:
                         print(f"\n{YELLOW}ℹ Removal cancelled.{RESET}")
                     
@@ -377,10 +437,12 @@ def edit_vm(vm_name):
                     valid_ip = all(0 <= int(part) <= 255 for part in ip_parts)
                     if valid_ip:
                         vm_info["ip"] = new_ip
-                        save_config(vms)
-                        print(f"\n{GREEN}✓ IP address updated successfully!{RESET}")
-                        print(f"{CYAN}Old IP:{RESET} {GRAY}{vm_info.get('old_ip', 'N/A')}{RESET}")
-                        print(f"{CYAN}New IP:{RESET} {WHITE}{new_ip}{RESET}")
+                        if save_config(vms):
+                            print(f"\n{GREEN}✓ IP address updated successfully!{RESET}")
+                            print(f"{CYAN}Old IP:{RESET} {GRAY}{vm_info.get('old_ip', 'N/A')}{RESET}")
+                            print(f"{CYAN}New IP:{RESET} {WHITE}{new_ip}{RESET}")
+                        else:
+                            print(f"\n{YELLOW}⚠ IP address updated but configuration could not be saved.{RESET}")
                         break
                     else:
                         print(f"{RED}✗ Invalid IP format! Each part must be 0-255{RESET}")
@@ -499,8 +561,10 @@ def add_vm():
             break
         elif confirm in ['y', 'yes']:
             vms[name] = {"ip": ip, "users": [], "color": color}
-            save_config(vms)
-            print(f"\n{GREEN}✓ VM {COLORS[color]}{name}{GREEN} created successfully!{RESET}")
+            if save_config(vms):
+                print(f"\n{GREEN}✓ VM {COLORS[color]}{name}{GREEN} created successfully!{RESET}")
+            else:
+                print(f"\n{YELLOW}⚠ VM {name} created but configuration could not be saved.{RESET}")
             break
         else:
             print(f"{RED}✗ Please enter 'y' to create, 'n' to cancel, or 'cancel' to abort{RESET}")
@@ -547,12 +611,15 @@ def delete_vm():
         
         if confirm.lower() == "yes":
             vms.pop(vm_name)
-            save_config(vms)
-            print(f"\n{GREEN}✓ VM {vm_name} deleted successfully!{RESET}")
+            if save_config(vms):
+                print(f"\n{GREEN}✓ VM {vm_name} deleted successfully!{RESET}")
+            else:
+                print(f"\n{YELLOW}⚠ VM {vm_name} deleted but configuration could not be saved.{RESET}")
         else:
             print(f"\n{YELLOW}ℹ Deletion cancelled.{RESET}")
         
         input(f"\n{GRAY}Press Enter to return...{RESET}")
 
 # Start the menu
-ssh_menu()
+if __name__ == "__main__":
+    ssh_menu()
