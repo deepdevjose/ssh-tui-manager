@@ -50,7 +50,7 @@ while True:
     vm_info = vms[vm_name]
     ip = vm_info["ip"]
 
-    # Submenú de usuarios
+    # Users submenu
     clear_screen()
     print(f"{vm_info['color']}=== Users for {vm_name} ==={RESET}\n")
     for idx, user in enumerate(vm_info["users"], start=1):
@@ -58,7 +58,7 @@ while True:
 
     opcion_user = input(f"\n{CYAN}Select the user number:{RESET} ")
 
-    if not opcion_user.isdigit() or int(opcion_user) < 1 or int(opcion_user) > len(vm_info["usuarios"]):
+    if not opcion_user.isdigit() or int(opcion_user) < 1 or int(opcion_user) > len(vm_info["users"]):
         input(f"{RED}Invalid user, press Enter to continue...{RESET}")
         continue
 
