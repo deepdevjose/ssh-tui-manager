@@ -9,7 +9,7 @@ vms = {
 }
 
 while True:
-    # Show VM menu
+    # Show SSH menu
     print("\n=== SSH Menu ===")
     for idx, vm_name in enumerate(vms.keys(), start=1):
         print(f"{idx}. {vm_name}")
@@ -18,7 +18,6 @@ while True:
     # Choose VM
     opcion_vm = input("Select the VM number: ")
 
-    # Validate option
     if not opcion_vm.isdigit():
         print("Invalid option, please enter a number.")
         continue
@@ -34,7 +33,7 @@ while True:
     vm_name = list(vms.keys())[opcion_vm - 1]
     ip = vms[vm_name]["ip"]
 
-    # Menú de usuarios
+    # Show users for the selected VM
     usuarios = vms[vm_name]["usuarios"]
     print(f"\n=== Users for {vm_name} ===")
     for idx, user in enumerate(usuarios, start=1):
@@ -48,8 +47,6 @@ while True:
 
     usuario = usuarios[int(opcion_user) - 1]
 
-    # Connect to the VM via SSH
-    print(f"\nConnecting to {vm_name} ({ip}) as {usuario}...\n")
-    os.system(f"ssh {usuario}@{ip}")
-
-    input("\nPress Enter to return to the menu...")
+    # Open SSH connection in a new CMD window
+    print(f"\nOpening SSH to {vm_name} ({ip}) as {usuario} in a new window...\n")
+    os.system(f'start cmd /k ssh {usuario}@{ip}')
