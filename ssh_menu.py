@@ -35,16 +35,11 @@ def load_config():
             return vms_data
     else:
         return {
-            "Debian VM": {
-                "ip": "192.168.100.55",
+            "VM": {
+                "ip": "your.vm.ip",  # Replace with actual IP
                 "users": ["root", "deepdevjose"],
                 "color": "RED"
             },
-            "Rocky VM": {
-                "ip": "192.168.100.54",
-                "users": ["root", "deepdevjose"],
-                "color": "GREEN"
-            }
         }
 
 # Save configuration
