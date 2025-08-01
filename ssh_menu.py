@@ -66,7 +66,7 @@ while True:
 
     # Open SSH connection in a new CMD window
     clear_screen()
-    print(f"{vm_info['color']}Opening SSH to {vm_name} ({ip}) as {usuario}...{RESET}\n")
-    os.system(f'start cmd /k ssh {usuario}@{ip}')
+    print(f"{vm_info['color']}Opening SSH to {vm_name} ({ip}) as {user}...{RESET}\n")
+    os.system(f'start cmd /k ssh {user}@{ip}')
 
     input(f"{CYAN}\nPress Enter to return to the menu...{RESET}")
